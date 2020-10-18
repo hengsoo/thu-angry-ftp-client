@@ -18,6 +18,8 @@ class FtpClientApplication:
 
         self.status = StringVar(value="Welcome to AngryFtpClient")
         self.file_explorer = ""
+        self.upload_file_path = StringVar()
+        self.connection_mode = StringVar(value="PASV")
         self.ui()
 
     def ui(self):
@@ -26,6 +28,8 @@ class FtpClientApplication:
         self.file_explorer_ui()
         self.status_and_download_ui()
         self.rename_ui()
+        self.upload_ui()
+        self.connection_mode_ui()
 
     def login_ui(self):
         # This will create a LabelFrame
@@ -98,3 +102,29 @@ class FtpClientApplication:
         rename_frame.pack(side=TOP, padx=5, pady=2, expand=1, fill=X)
         rename_input.pack(side=LEFT, padx=5)
         rename_button.pack(side=RIGHT)
+
+    def upload_ui(self):
+        upload_frame = LabelFrame(self.main_frame, text="Upload", padx=5, pady=2)
+        upload_label = Label(upload_frame, text="File:")
+        upload_input = Entry(upload_frame, width=40)
+        upload_browse_button = Button(upload_frame, text="Browse")
+        upload_button = Button(upload_frame, text="Upload")
+
+        upload_frame.pack(side=TOP, padx=5, pady=2, expand=1, fill=X)
+        upload_label.pack(side=LEFT)
+        upload_input.pack(side=LEFT, padx=5)
+        upload_browse_button.pack(side=LEFT, padx=5)
+        upload_button.pack(side=LEFT)
+
+    def connection_mode_ui(self):
+        mode_frame = Frame(self.main_frame, pady=5)
+        mode_label = Label(mode_frame, text="Connection Mode")
+        port_button = \
+            Radiobutton(mode_frame, text="PORT", value="PORT", variable=self.connection_mode, indicator=0)
+        pasv_button = \
+            Radiobutton(mode_frame, text="PASV", value="PASV", variable=self.connection_mode, indicator=0)
+
+        mode_frame.pack(side=TOP, padx=5, pady=2, expand=1, fill=X)
+        mode_label.pack(side=TOP)
+        port_button.pack(side=LEFT, expand=1, fill=X)
+        pasv_button.pack(side=LEFT, expand=1, fill=X)
