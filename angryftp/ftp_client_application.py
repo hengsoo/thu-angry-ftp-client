@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter.filedialog import asksaveasfile
+from tkinter.filedialog import asksaveasfile, askopenfilename
 from .ftp_client_service import AngryFtpClientService
 
 
@@ -184,14 +184,13 @@ class AngryFtpClientApplication:
         if selected_dir[1] == '>':
             return -1
 
-        download_file_path = selected_dir[3:]
-        print(download_file_path)
-        downloaded_data = self.ftp.download_file(download_file_path)
+        download_file_name = selected_dir[3:]
+        downloaded_data = self.ftp.download_file(download_file_name)
         # Download failed
         if downloaded_data == -1:
             return -1
         downloaded_file = asksaveasfile(title="Save file as...", mode="wb",
-                                        initialfile=download_file_path, filetype=[('All Files', '*.*')])
+                                        initialfile=download_file_name, filetype=[('All Files', '*.*')])
         downloaded_file.write(downloaded_data)
         if downloaded_file:
             downloaded_file.close()
@@ -208,15 +207,25 @@ class AngryFtpClientApplication:
     def upload_ui(self):
         upload_frame = LabelFrame(self.main_frame, text="Upload", padx=5, pady=2)
         upload_label = Label(upload_frame, text="File:")
-        upload_input = Entry(upload_frame, width=40)
-        upload_browse_button = Button(upload_frame, text="Browse")
-        upload_button = Button(upload_frame, text="Upload")
+        upload_input = Entry(upload_frame, width=40, textvariable=self.upload_file_path)
+        upload_browse_button = Button(upload_frame, text="Browse", command=self.browse_upload_file)
+        upload_button = Button(upload_frame, text="Upload", command=self.upload)
 
         upload_frame.pack(side=TOP, padx=5, pady=2, expand=1, fill=X)
         upload_label.pack(side=LEFT)
         upload_input.pack(side=LEFT, padx=5)
         upload_browse_button.pack(side=LEFT, padx=5)
         upload_button.pack(side=LEFT)
+
+    def browse_upload_file(self):
+        file_path = askopenfilename()
+        if len(file_path) > 0:
+            self.upload_file_path.set(file_path)
+
+    def upload(self):
+        if self.ftp.upload_file(self.upload_file_path.get()) == -1:
+            return -1
+        self.update_list()
 
     def connection_mode_ui(self):
         mode_frame = Frame(self.main_frame, pady=5)

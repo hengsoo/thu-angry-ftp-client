@@ -36,20 +36,25 @@ class AngryFtpClientService:
         else:
             self.data_connection_mode = "PASV"
 
-    def make_request(self, request):
+    def make_request(self, request, file_path=""):
         encoded_request = (request + "\r\n").encode()
 
         self.socket.sendall(encoded_request)
 
-        if request[:4] in ["LIST", "RETR", "STOR"]:
+        request = request[:4]
+        if request in ["LIST", "RETR", "STOR"]:
             # Listen for connection is mode is PORT
             if self.data_connection_mode == "PORT":
                 self.data_listen_socket.listen()
                 self.data_socket, addr = self.data_listen_socket.accept()
             # Get 150 Opening binary data mode response
             self.get_response()
-            # Save data
-            self.save_data_response(self.data, request[:4])
+            if request == "STOR":
+                # Send data
+                self.upload_file_data(file_path)
+            else:
+                # Save data
+                self.save_data_response(self.data, request[:4])
 
         return self.get_response()
 
@@ -75,6 +80,16 @@ class AngryFtpClientService:
             save_point.append(data)
 
         # Transfer complete or connection dropped
+        # Close socket
+        if self.data_connection_mode == "PORT":
+            self.data_listen_socket.close()
+        self.data_socket.close()
+        return 0
+
+    def upload_file_data(self, file_path):
+        with open(file_path, "rb") as upload_file:
+            for data in upload_file:
+                self.data_socket.sendall(data)
         # Close socket
         if self.data_connection_mode == "PORT":
             self.data_listen_socket.close()
@@ -206,14 +221,19 @@ class AngryFtpClientService:
             self.set_status(str(e))
             return -1
 
-    def download_file(self, file_path):
+    def transfer_file(self, file_name, mode, file_path=""):
         try:
             if self.setup_data_connection() == 1:
                 return -1
-            code, response = self.make_request(f"RETR {file_path}")
+            code, response = self.make_request(f"{mode} {file_name}", file_path)
             if code != 226:
-                raise Exception("RETR failed")
+                raise Exception(f"{mode} failed")
 
+            # No need to return data if STOR
+            if mode == "STOR":
+                return 0
+
+            # RETR
             # If file is empty, return empty string
             if len(self.data) < 1:
                 return b""
@@ -224,6 +244,14 @@ class AngryFtpClientService:
             return data_string
 
         except Exception as e:
-            print(f"Download File error: {str(e)}")
+            print(f"{mode} File error: {str(e)}")
             self.set_status(str(e))
             return -1
+
+    def download_file(self, file_name):
+        return self.transfer_file(file_name, "RETR")
+
+    def upload_file(self, file_path):
+        start_index = file_path.rfind('/')
+        file_name = file_path[start_index:]
+        return self.transfer_file(file_name, "STOR", file_path)
