@@ -3,6 +3,9 @@ from tkinter import *
 
 class FtpClientApplication:
     def __init__(self, master):
+        self.master = master
+        self.main_frame = Frame(self.master).pack(padx=2, pady=(0, 2))
+
         self.addresses = {
             "ftp_ip": StringVar(value="127.0.0.1"),
             "ftp_port": StringVar(value=21),
@@ -11,14 +14,15 @@ class FtpClientApplication:
         }
         self.username = StringVar(value="anonymous")
         self.password = StringVar(value="banana")
+        self.connection_state = StringVar(value="Disconnected")
 
-        self.master = master
-        self.main_frame = Frame(self.master).pack(padx=2, pady=(0,2))
+        self.file_explorer = ""
         self.ui()
 
     def ui(self):
         self.master.title("banana")
         self.login_ui()
+        self.file_explorer_ui()
 
     def login_ui(self):
         # This will create a LabelFrame
@@ -33,10 +37,11 @@ class FtpClientApplication:
         password_label = Label(login_frame, text="Password:")
         password_input = Entry(login_frame, textvariable=self.password, show="*")
 
-        auth_button = Button(self.master, text="Connect", width=20)
+        auth_button = Button(self.main_frame, text="Connect", width=20)
 
-        connection_state_label = Label(self.master, text="Disconnected", bg="red", fg="white",
-                                       font='Helvetica 11 bold')
+        connection_state_label = \
+            Label(self.master, textvariable=self.connection_state, bg="red", fg="white",
+                  font='Helvetica 11 bold')
 
         connection_state_label.pack(side=TOP, fill=BOTH)
         login_frame.pack(side=TOP, padx=5, pady=2)
@@ -52,3 +57,17 @@ class FtpClientApplication:
         password_input.grid(row=1, column=3)
 
         auth_button.pack(side=TOP, pady=2)
+
+    def file_explorer_ui(self):
+        file_explorer_frame = Frame(self.main_frame, padx=10)
+        self.file_explorer = Listbox(file_explorer_frame, height=10, width=60)
+        scrollbar = Scrollbar(file_explorer_frame)
+
+        self.file_explorer.config(yscrollcommand=scrollbar.set)
+        scrollbar.config(command=self.file_explorer.yview)
+
+        file_explorer_frame.pack(side=TOP)
+        self.file_explorer.pack(side=LEFT, fill=BOTH, pady=10)
+        scrollbar.pack(side=RIGHT, fill=BOTH)
+        for values in range(100):
+            self.file_explorer.insert(END, values)
