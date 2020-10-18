@@ -23,7 +23,7 @@ class FtpClientApplication:
         self.ui()
 
     def ui(self):
-        self.master.title("Angry Ftp Client")
+        self.master.title("Angry FTP Client")
         self.login_ui()
         self.file_explorer_ui()
         self.status_and_download_ui()
