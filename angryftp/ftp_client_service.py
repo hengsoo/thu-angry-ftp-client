@@ -42,11 +42,13 @@ class AngryFtpClientService:
     def get_response(self):
         response = self.socket.recv(BUFFER_SIZE).decode()
         print(response)
+
         while response[3] != ' ':
             response = self.socket.recv(BUFFER_SIZE).decode()
             print(response)
             if len(response) <= 0:
                 raise Exception("No end statement.")
+
         self.set_status(response)
         return self.get_code(response), response
 
@@ -123,6 +125,10 @@ class AngryFtpClientService:
             print(f"Data Connection Setup Error: {str(e)}")
             self.set_status(str(e))
             return -1
+
+    def print_current_directory(self):
+        code, response = self.make_request("PWD")
+        return response
 
     def update_list(self, listbox: Listbox):
         try:

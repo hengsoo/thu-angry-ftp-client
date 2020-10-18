@@ -24,6 +24,8 @@ class AngryFtpClientApplication:
 
         self.status = StringVar(value="Welcome to AngryFtpClient")
         # Init in explorer ui
+        self.current_directory = ""
+        self.current_directory_label = StringVar(value="Directory Path: ")
         self.file_explorer_listbox = None
         self.upload_file_path = StringVar()
         self.connection_mode = StringVar(value="PASV")
@@ -99,14 +101,19 @@ class AngryFtpClientApplication:
 
     def file_explorer_ui(self):
         file_explorer_frame = Frame(self.main_frame, padx=10)
-        self.file_explorer_listbox = Listbox(file_explorer_frame, height=10, width=60)
+
+        file_explorer_label = Label(file_explorer_frame,
+                                    textvariable=self.current_directory_label, width=52, anchor=W)
+
+        self.file_explorer_listbox = Listbox(file_explorer_frame, height=10, width=60, activestyle="none")
         scrollbar = Scrollbar(file_explorer_frame)
 
         self.file_explorer_listbox.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=self.file_explorer_listbox.yview)
 
         file_explorer_frame.pack(side=TOP)
-        self.file_explorer_listbox.pack(side=LEFT, fill=BOTH, pady=10)
+        file_explorer_label.pack(side=TOP)
+        self.file_explorer_listbox.pack(side=LEFT, fill=BOTH, pady=(0, 10))
         scrollbar.pack(side=RIGHT, fill=BOTH)
 
         # self.file_explorer_listbox.insert(END, "=== Welcome to ANGRY FTP CLIENT ===")
@@ -115,6 +122,14 @@ class AngryFtpClientApplication:
     def update_list(self):
         self.file_explorer_listbox.delete(0, "end")
         self.ftp.update_list(self.file_explorer_listbox)
+        self.update_directory()
+
+    def update_directory(self):
+        label = "Directory Path: "
+        # remove code and ""
+        directory = (self.ftp.print_current_directory())[5:-3]
+        label += directory
+        self.current_directory_label.set(label)
 
     def status_and_download_ui(self):
         status_download_frame = Frame(self.main_frame, padx=5)
