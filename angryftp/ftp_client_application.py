@@ -16,13 +16,15 @@ class FtpClientApplication:
         self.password = StringVar(value="banana")
         self.connection_state = StringVar(value="Disconnected")
 
+        self.status = StringVar(value="Welcome to AngryFtpClient")
         self.file_explorer = ""
         self.ui()
 
     def ui(self):
-        self.master.title("banana")
+        self.master.title("Angry Ftp Client")
         self.login_ui()
         self.file_explorer_ui()
+        self.status_and_download_ui()
 
     def login_ui(self):
         # This will create a LabelFrame
@@ -71,3 +73,17 @@ class FtpClientApplication:
         scrollbar.pack(side=RIGHT, fill=BOTH)
         for values in range(100):
             self.file_explorer.insert(END, values)
+
+    def status_and_download_ui(self):
+        status_download_frame = Frame(self.main_frame)
+
+        status_frame = LabelFrame(status_download_frame, text="Status")
+        status_label = \
+            Label(status_frame, textvariable=self.status, anchor=W, width=40)
+
+        download_button = Button(status_download_frame, text="Download")
+
+        status_download_frame.pack(side=TOP, pady=(0, 5))
+        status_frame.pack(side=LEFT, padx=5, fill=X)
+        status_label.pack()
+        download_button.pack(side=LEFT, pady=(8, 0))
