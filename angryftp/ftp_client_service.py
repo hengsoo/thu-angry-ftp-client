@@ -15,7 +15,7 @@ class AngryFtpClientService:
 
         self.data_listen_socket = None
         self.data_socket = None
-        self.data_mode = "PORT"
+        self.data_connection_mode = "PORT"
         self.data = []
         self.data_download_path = "./"
         self.data_upload_path = ""
@@ -32,9 +32,9 @@ class AngryFtpClientService:
 
     def set_pasv(self, val: bool):
         if not val:
-            self.data_mode = "PORT"
+            self.data_connection_mode = "PORT"
         else:
-            self.data_mode = "PASV"
+            self.data_connection_mode = "PASV"
 
     def make_request(self, request):
         encoded_request = (request + "\r\n").encode()
@@ -43,7 +43,7 @@ class AngryFtpClientService:
 
         if request[:4] in ["LIST", "RETR", "STOR"]:
             # Listen for connection is mode is PORT
-            if self.data_mode == "PORT":
+            if self.data_connection_mode == "PORT":
                 self.data_listen_socket.listen()
                 self.data_socket, addr = self.data_listen_socket.accept()
             # Get 150 Opening binary data mode response
@@ -72,7 +72,7 @@ class AngryFtpClientService:
             data = self.data_socket.recv(BUFFER_SIZE).decode()
         # Transfer complete or connection dropped
         # Close socket
-        if self.data_mode == "PORT":
+        if self.data_connection_mode == "PORT":
             self.data_listen_socket.close()
         self.data_socket.close()
         return 0
@@ -129,7 +129,7 @@ class AngryFtpClientService:
 
     def setup_data_connection(self):
         try:
-            if self.data_mode == "PORT":
+            if self.data_connection_mode == "PORT":
                 # Create socket
                 self.data_listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

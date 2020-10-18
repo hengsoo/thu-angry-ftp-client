@@ -15,7 +15,7 @@ class AngryFtpClientApplication:
             "ftp_port": StringVar(value=2121)
         }
         self.username = StringVar(value="anonymous")
-        self.password = StringVar(value="banana")
+        self.password = StringVar(value="blue banana")
         # Init in login_ui
         self.connection_state_label = None
         self.auth_button = None
@@ -26,7 +26,7 @@ class AngryFtpClientApplication:
         self.current_directory_label = StringVar(value="/")
         self.file_explorer_listbox = None
         self.upload_file_path = StringVar()
-        self.connection_mode = StringVar(value="PASV")
+        self.data_connection_mode = StringVar(value="PASV")
 
         self.ftp = AngryFtpClientService(self.status)
         self.master.protocol("WM_DELETE_WINDOW", quit)
@@ -94,6 +94,7 @@ class AngryFtpClientApplication:
         # Logout
         else:
             self.ftp.disconnect()
+            self.file_explorer_listbox.delete(0, END)
             self.connection_state_label.config(text="Disconnected", bg="red")
             self.auth_button.config(text="Connect", bg="green")
 
@@ -199,11 +200,21 @@ class AngryFtpClientApplication:
         mode_frame = Frame(self.main_frame, pady=5)
         mode_label = Label(mode_frame, text="Connection Mode")
         port_button = \
-            Radiobutton(mode_frame, text="PORT", value="PORT", variable=self.connection_mode, indicator=0)
+            Radiobutton(mode_frame, text="PORT", value="PORT",
+                        variable=self.data_connection_mode, indicator=0, command=self.update_connection_mode)
         pasv_button = \
-            Radiobutton(mode_frame, text="PASV", value="PASV", variable=self.connection_mode, indicator=0)
+            Radiobutton(mode_frame, text="PASV", value="PASV",
+                        variable=self.data_connection_mode, indicator=0, command=self.update_connection_mode)
 
         mode_frame.pack(side=TOP, padx=5, pady=2, expand=1, fill=X)
         mode_label.pack(side=TOP)
         port_button.pack(side=LEFT, expand=1, fill=X)
         pasv_button.pack(side=LEFT, expand=1, fill=X)
+
+    def update_connection_mode(self):
+        if self.data_connection_mode.get() == "PASV":
+            self.ftp.set_pasv(True)
+            print("Connection Mode: PASV")
+        else:
+            self.ftp.set_pasv(False)
+            print("Connection Mode: PORT")
