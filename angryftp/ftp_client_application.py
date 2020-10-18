@@ -4,7 +4,7 @@ from tkinter import *
 class FtpClientApplication:
     def __init__(self, master):
         self.master = master
-        self.main_frame = Frame(self.master).pack(padx=2, pady=(0, 2))
+        self.main_frame = Frame(self.master).pack(padx=10)
 
         self.addresses = {
             "ftp_ip": StringVar(value="127.0.0.1"),
@@ -25,6 +25,7 @@ class FtpClientApplication:
         self.login_ui()
         self.file_explorer_ui()
         self.status_and_download_ui()
+        self.rename_ui()
 
     def login_ui(self):
         # This will create a LabelFrame
@@ -42,11 +43,11 @@ class FtpClientApplication:
         auth_button = Button(self.main_frame, text="Connect", width=20)
 
         connection_state_label = \
-            Label(self.master, textvariable=self.connection_state, bg="red", fg="white",
+            Label(self.main_frame, textvariable=self.connection_state, bg="red", fg="white",
                   font='Helvetica 11 bold')
 
         connection_state_label.pack(side=TOP, fill=BOTH)
-        login_frame.pack(side=TOP, padx=5, pady=2)
+        login_frame.pack(side=TOP, padx=5, pady=2, expand=1, fill=X)
 
         ip_label.grid(row=0, column=0, pady=2)
         ip_input.grid(row=0, column=1, padx=4)
@@ -75,15 +76,25 @@ class FtpClientApplication:
             self.file_explorer.insert(END, values)
 
     def status_and_download_ui(self):
-        status_download_frame = Frame(self.main_frame)
+        status_download_frame = Frame(self.main_frame, padx=5)
 
         status_frame = LabelFrame(status_download_frame, text="Status")
         status_label = \
-            Label(status_frame, textvariable=self.status, anchor=W, width=40)
+            Label(status_frame, textvariable=self.status, anchor=W, width=45)
 
+        # Save as file
         download_button = Button(status_download_frame, text="Download")
 
-        status_download_frame.pack(side=TOP, pady=(0, 5))
-        status_frame.pack(side=LEFT, padx=5, fill=X)
+        status_download_frame.pack(side=TOP, pady=(0, 5), padx=0, expand=1, fill=X)
+        status_frame.pack(side=LEFT)
         status_label.pack()
-        download_button.pack(side=LEFT, pady=(8, 0))
+        download_button.pack(side=RIGHT, pady=(8, 0), padx=5)
+
+    def rename_ui(self):
+        rename_frame = LabelFrame(self.main_frame, text="Rename to", padx=5, pady=2)
+        rename_input = Entry(rename_frame, width=50)
+        rename_button = Button(rename_frame, text="Confirm")
+
+        rename_frame.pack(side=TOP, padx=5, pady=2, expand=1, fill=X)
+        rename_input.pack(side=LEFT, padx=5)
+        rename_button.pack(side=RIGHT)
