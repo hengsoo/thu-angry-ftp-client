@@ -20,6 +20,12 @@ class AngryFtpClientService:
 
         self.status = status
 
+    def __del__(self):
+        if self.data_socket:
+            self.data_socket.close()
+        if self.socket:
+            self.socket.close()
+
     def set_pasv(self, val: bool):
         if not val:
             self.data_mode = "PORT"
