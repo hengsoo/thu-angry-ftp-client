@@ -1,6 +1,6 @@
 import socket
 import re
-from tkinter import StringVar, Listbox
+from tkinter import StringVar, Listbox, END
 
 BUFFER_SIZE = 1024
 
@@ -34,7 +34,8 @@ class AngryFtpClientService:
         if request in ["LIST", "RETR", "STOR"]:
             # Get 150 Opening binary data mode response
             self.get_response()
-            self.process_data_response(request)
+            # Save data
+            self.save_data_response(self.data)
 
         return self.get_response()
 
@@ -49,16 +50,14 @@ class AngryFtpClientService:
         self.set_status(response)
         return self.get_code(response), response
 
-    def process_data_response(self, request: str):
+    def save_data_response(self, save_point: list):
         data = self.data_socket.recv(BUFFER_SIZE).decode()
         while len(data) > 0:
-            print(data)
-            self.data.append(data)
+            save_point.append(data)
             data = self.data_socket.recv(BUFFER_SIZE).decode()
         # Transfer complete or connection dropped
-        # Close socket and clear data
+        # Close socket
         self.data_socket.close()
-        self.data.clear()
         return 0
 
     @staticmethod
@@ -71,9 +70,9 @@ class AngryFtpClientService:
         length = len(message)
         if length > 55:
             message = message[:52] + "..."
-        else:
-            # Remove \r\n
-            message = message[:length - 2] + '\0'
+        # Remove \r\n
+        if message[length-2:length] == "\r\n":
+            message = message[:length-2] + '\0'
         self.status.set(message)
 
     def connect(self, server_ip: str, server_port: int, username="anonymous", password="***"):
@@ -126,7 +125,30 @@ class AngryFtpClientService:
             return -1
 
     def update_list(self, listbox: Listbox):
-        if self.setup_data_connection() == 1:
+        try:
+            if self.setup_data_connection() == 1:
+                return -1
+            code, response = self.make_request("LIST")
+            if code != 226:
+                raise Exception("LIST update failed")
+
+            # self.data is a list of single string containing the dir list
+            self.data = self.data[0].split("\r\n")
+            print(self.data)
+            for directory in self.data:
+                if len(directory) < 1:
+                    continue
+                list_detail = " "
+                # If directory is folder >, else it is a file -
+                list_detail += ("> " if directory[0] == 'd' else "- ")
+                print(directory)
+                directory_name = (re.search(r"\s([\w\d.]+)$", directory)).group(1)
+                list_detail += directory_name
+                listbox.insert(END, list_detail)
+            # Clear data
+            self.data.clear()
+
+        except Exception as e:
+            print(f"Update List error: {str(e)}")
+            self.set_status(str(e))
             return -1
-        code, response = self.make_request("LIST")
-        pass

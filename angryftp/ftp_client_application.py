@@ -6,6 +6,8 @@ class AngryFtpClientApplication:
     def __init__(self, master):
 
         self.master = master
+        self.master.title("Angry FTP Client")
+
         self.main_frame = Frame(self.master).pack(padx=10)
 
         self.addresses = {
@@ -27,16 +29,20 @@ class AngryFtpClientApplication:
         self.connection_mode = StringVar(value="PASV")
 
         self.ftp = AngryFtpClientService(self.status)
+        self.master.protocol("WM_DELETE_WINDOW", quit)
         self.ui()
 
     def ui(self):
-        self.master.title("Angry FTP Client")
         self.login_ui()
         self.file_explorer_ui()
         self.status_and_download_ui()
         self.rename_ui()
         self.upload_ui()
         self.connection_mode_ui()
+
+    def quit(self):
+        self.ftp.disconnect()
+        self.master.destroy()
 
     def login_ui(self):
         # This will create a LabelFrame
