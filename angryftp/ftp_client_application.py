@@ -104,11 +104,11 @@ class AngryFtpClientApplication:
 
         file_explorer_label = Label(file_explorer_control_frame, text="Directory Path: ")
         file_explorer_path = Label(file_explorer_control_frame,
-                                   textvariable=self.current_directory_label, width=40, anchor=W)
+                                   textvariable=self.current_directory_label, width=32, anchor=W)
         go_to_parent_button = Button(file_explorer_control_frame, text="Go back",
                                      command=self.go_to_parent_dir)
 
-        self.file_explorer_listbox = Listbox(file_explorer_frame, height=10, width=72, activestyle="none")
+        self.file_explorer_listbox = Listbox(file_explorer_frame, height=10, width=62, activestyle="none")
         self.file_explorer_listbox.bind("<Double-Button>", self.change_directory)
 
         scrollbar = Scrollbar(file_explorer_frame)
