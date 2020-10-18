@@ -75,6 +75,7 @@ class AngryFtpClientApplication:
         self.auth_button.pack(side=TOP, pady=2)
 
     def auth(self):
+        # Login
         if self.connection_state_label.cget("text") == "Disconnected":
             return_val = self.ftp.connect(
                 self.addresses["ftp_ip"].get(), int(self.addresses["ftp_port"].get()),
@@ -83,6 +84,8 @@ class AngryFtpClientApplication:
             if return_val == 0:
                 self.connection_state_label.config(text="Connected", bg="green")
                 self.auth_button.config(text="Disconnect", bg="red")
+                self.update_list()
+        # Logout
         else:
             self.ftp.disconnect()
             self.connection_state_label.config(text="Disconnected", bg="red")
@@ -99,8 +102,13 @@ class AngryFtpClientApplication:
         file_explorer_frame.pack(side=TOP)
         self.file_explorer_listbox.pack(side=LEFT, fill=BOTH, pady=10)
         scrollbar.pack(side=RIGHT, fill=BOTH)
-        for values in range(100):
-            self.file_explorer_listbox.insert(END, values)
+
+        # self.file_explorer_listbox.insert(END, "=== Welcome to ANGRY FTP CLIENT ===")
+        # self.update_list()
+
+    def update_list(self):
+        self.file_explorer_listbox.delete(0, "end")
+        self.ftp.update_list(self.file_explorer_listbox)
 
     def status_and_download_ui(self):
         status_download_frame = Frame(self.main_frame, padx=5)
