@@ -130,6 +130,10 @@ class AngryFtpClientService:
         code, response = self.make_request("PWD")
         return response
 
+    def change_current_directory(self, new_dir):
+        self.make_request(f"CWD {new_dir}")
+        return 0
+
     def update_list(self, listbox: Listbox):
         try:
             if self.setup_data_connection() == 1:
@@ -137,10 +141,14 @@ class AngryFtpClientService:
             code, response = self.make_request("LIST")
             if code != 226:
                 raise Exception("LIST update failed")
+            # If list is empty
+            if len(self.data) < 1:
+                return 1
 
             # self.data is a list of single string containing the dir list
             self.data = self.data[0].split("\r\n")
             for directory in self.data:
+                print(directory)
                 if len(directory) < 1:
                     continue
                 list_detail = " "
@@ -151,6 +159,7 @@ class AngryFtpClientService:
                 listbox.insert(END, list_detail)
             # Clear data
             self.data.clear()
+            return 0
 
         except Exception as e:
             print(f"Update List error: {str(e)}")

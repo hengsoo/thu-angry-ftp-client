@@ -106,6 +106,8 @@ class AngryFtpClientApplication:
                                     textvariable=self.current_directory_label, width=52, anchor=W)
 
         self.file_explorer_listbox = Listbox(file_explorer_frame, height=10, width=60, activestyle="none")
+        self.file_explorer_listbox.bind("<Double-Button>", self.change_directory)
+
         scrollbar = Scrollbar(file_explorer_frame)
 
         self.file_explorer_listbox.config(yscrollcommand=scrollbar.set)
@@ -116,20 +118,33 @@ class AngryFtpClientApplication:
         self.file_explorer_listbox.pack(side=LEFT, fill=BOTH, pady=(0, 10))
         scrollbar.pack(side=RIGHT, fill=BOTH)
 
-        # self.file_explorer_listbox.insert(END, "=== Welcome to ANGRY FTP CLIENT ===")
-        # self.update_list()
-
     def update_list(self):
-        self.file_explorer_listbox.delete(0, "end")
+        self.file_explorer_listbox.delete(0, END)
+        self.update_directory_label()
         self.ftp.update_list(self.file_explorer_listbox)
-        self.update_directory()
 
-    def update_directory(self):
+    def update_directory_label(self):
         label = "Directory Path: "
         # remove code and ""
         directory = (self.ftp.print_current_directory())[5:-3]
         label += directory
         self.current_directory_label.set(label)
+
+    def change_directory(self, event):
+        # 01234
+        # _>_dir
+        selected_dir = (self.file_explorer_listbox.curselection())
+        if len(selected_dir) < 1:
+            return -1
+        selected_dir = self.file_explorer_listbox.get(selected_dir[0])
+        # If it is a file
+        if selected_dir[1] == '-':
+            return -1
+        selected_dir_path = selected_dir[3:]
+        self.current_directory = self.current_directory + '/' + selected_dir_path
+
+        self.ftp.change_current_directory(self.current_directory)
+        self.update_list()
 
     def status_and_download_ui(self):
         status_download_frame = Frame(self.main_frame, padx=5)
