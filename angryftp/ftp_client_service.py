@@ -15,7 +15,7 @@ class AngryFtpClientService:
 
         self.data_listen_socket = None
         self.data_socket = None
-        self.data_connection_mode = "PORT"
+        self.data_connection_mode = "PASV"
         self.data = []
         self.data_download_path = "./"
         self.data_upload_path = ""
@@ -49,7 +49,7 @@ class AngryFtpClientService:
             # Get 150 Opening binary data mode response
             self.get_response()
             # Save data
-            self.save_data_response(self.data)
+            self.save_data_response(self.data, request[:4])
 
         return self.get_response()
 
@@ -65,11 +65,15 @@ class AngryFtpClientService:
         self.set_status(response)
         return self.get_code(response), response
 
-    def save_data_response(self, save_point: list):
-        data = self.data_socket.recv(BUFFER_SIZE).decode()
-        while len(data) > 0:
+    def save_data_response(self, save_point: list, request):
+        while True:
+            data = self.data_socket.recv(BUFFER_SIZE)
+            if request == "LIST":
+                data = data.decode()
+            if len(data) <= 0:
+                break
             save_point.append(data)
-            data = self.data_socket.recv(BUFFER_SIZE).decode()
+
         # Transfer complete or connection dropped
         # Close socket
         if self.data_connection_mode == "PORT":
@@ -190,7 +194,7 @@ class AngryFtpClientService:
                 list_detail = " "
                 # If directory is folder >, else it is a file -
                 list_detail += ("> " if directory[0] == 'd' else "- ")
-                directory_name = (re.search(r"\s([\w\d.]+)$", directory)).group(1)
+                directory_name = (re.search(r"\s([\s\w\d.]+)$", directory)).group(1)
                 list_detail += directory_name
                 listbox.insert(END, list_detail)
             # Clear data
@@ -199,5 +203,27 @@ class AngryFtpClientService:
 
         except Exception as e:
             print(f"Update List error: {str(e)}")
+            self.set_status(str(e))
+            return -1
+
+    def download_file(self, file_path):
+        try:
+            if self.setup_data_connection() == 1:
+                return -1
+            code, response = self.make_request(f"RETR {file_path}")
+            if code != 226:
+                raise Exception("RETR failed")
+
+            # If file is empty, return empty string
+            if len(self.data) < 1:
+                return b""
+
+            # Write data into a string
+            data_string = b"".join(self.data)
+            self.data.clear()
+            return data_string
+
+        except Exception as e:
+            print(f"Download File error: {str(e)}")
             self.set_status(str(e))
             return -1

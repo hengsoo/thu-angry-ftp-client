@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter.filedialog import asksaveasfile
 from .ftp_client_service import AngryFtpClientService
 
 
@@ -148,7 +149,7 @@ class AngryFtpClientApplication:
             if len(selected_dir) < 1:
                 return -1
             selected_dir = self.file_explorer_listbox.get(selected_dir[0])
-            # If it is a file
+            # If it is a file, return -1
             if selected_dir[1] == '-':
                 return -1
             selected_dir_path = selected_dir[3:]
@@ -167,12 +168,33 @@ class AngryFtpClientApplication:
             Label(status_frame, textvariable=self.status, anchor=W, width=45)
 
         # Save as file
-        download_button = Button(status_download_frame, text="Download")
+        download_button = Button(status_download_frame, text="Download", command=self.download)
 
         status_download_frame.pack(side=TOP, pady=(0, 5), padx=0, expand=1, fill=X)
         status_frame.pack(side=LEFT)
         status_label.pack()
         download_button.pack(side=RIGHT, pady=(8, 0), padx=5)
+
+    def download(self):
+        selected_dir = (self.file_explorer_listbox.curselection())
+        if len(selected_dir) < 1:
+            return -1
+        selected_dir = self.file_explorer_listbox.get(selected_dir[0])
+        # If it is a folder, return -1
+        if selected_dir[1] == '>':
+            return -1
+
+        download_file_path = selected_dir[3:]
+        print(download_file_path)
+        downloaded_data = self.ftp.download_file(download_file_path)
+        # Download failed
+        if downloaded_data == -1:
+            return -1
+        downloaded_file = asksaveasfile(title="Save file as...", mode="wb",
+                                        initialfile=download_file_path, filetype=[('All Files', '*.*')])
+        downloaded_file.write(downloaded_data)
+        if downloaded_file:
+            downloaded_file.close()
 
     def rename_ui(self):
         rename_frame = LabelFrame(self.main_frame, text="Rename to", padx=5, pady=2)
