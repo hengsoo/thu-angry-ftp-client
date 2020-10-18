@@ -24,8 +24,8 @@ class AngryFtpClientApplication:
 
         self.status = StringVar(value="Welcome to AngryFtpClient")
         # Init in explorer ui
-        self.current_directory = ""
-        self.current_directory_label = StringVar(value="Directory Path: ")
+        self.current_directory = "/"
+        self.current_directory_label = StringVar(value="/")
         self.file_explorer_listbox = None
         self.upload_file_path = StringVar()
         self.connection_mode = StringVar(value="PASV")
@@ -100,12 +100,16 @@ class AngryFtpClientApplication:
             self.auth_button.config(text="Connect", bg="green")
 
     def file_explorer_ui(self):
+        file_explorer_control_frame = Frame(self.main_frame, padx=10)
         file_explorer_frame = Frame(self.main_frame, padx=10)
 
-        file_explorer_label = Label(file_explorer_frame,
-                                    textvariable=self.current_directory_label, width=52, anchor=W)
+        file_explorer_label = Label(file_explorer_control_frame, text="Directory Path: ")
+        file_explorer_path = Label(file_explorer_control_frame,
+                                   textvariable=self.current_directory_label, width=40, anchor=W)
+        go_to_parent_button = Button(file_explorer_control_frame, text="Go back",
+                                     command=self.go_to_parent_dir)
 
-        self.file_explorer_listbox = Listbox(file_explorer_frame, height=10, width=60, activestyle="none")
+        self.file_explorer_listbox = Listbox(file_explorer_frame, height=10, width=72, activestyle="none")
         self.file_explorer_listbox.bind("<Double-Button>", self.change_directory)
 
         scrollbar = Scrollbar(file_explorer_frame)
@@ -113,8 +117,12 @@ class AngryFtpClientApplication:
         self.file_explorer_listbox.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=self.file_explorer_listbox.yview)
 
-        file_explorer_frame.pack(side=TOP)
-        file_explorer_label.pack(side=TOP)
+        file_explorer_control_frame.pack(side=TOP)
+        file_explorer_label.pack(side=LEFT)
+        file_explorer_path.pack(side=LEFT)
+        go_to_parent_button.pack(side=LEFT, padx=5)
+
+        file_explorer_frame.pack(side=TOP, pady=3)
         self.file_explorer_listbox.pack(side=LEFT, fill=BOTH, pady=(0, 10))
         scrollbar.pack(side=RIGHT, fill=BOTH)
 
@@ -124,24 +132,30 @@ class AngryFtpClientApplication:
         self.ftp.update_list(self.file_explorer_listbox)
 
     def update_directory_label(self):
-        label = "Directory Path: "
         # remove code and ""
         directory = (self.ftp.print_current_directory())[5:-3]
-        label += directory
-        self.current_directory_label.set(label)
+        self.current_directory_label.set(directory)
 
-    def change_directory(self, event):
-        # 01234
-        # _>_dir
-        selected_dir = (self.file_explorer_listbox.curselection())
-        if len(selected_dir) < 1:
-            return -1
-        selected_dir = self.file_explorer_listbox.get(selected_dir[0])
-        # If it is a file
-        if selected_dir[1] == '-':
-            return -1
-        selected_dir_path = selected_dir[3:]
-        self.current_directory = self.current_directory + '/' + selected_dir_path
+    def go_to_parent_dir(self):
+        last_index = self.current_directory.rfind("/")
+        new_dir = self.current_directory[:last_index]
+        self.change_directory(new_dir=new_dir)
+
+    def change_directory(self, event=None, new_dir=None):
+        if new_dir is None:
+            # 01234
+            # _>_dir
+            selected_dir = (self.file_explorer_listbox.curselection())
+            if len(selected_dir) < 1:
+                return -1
+            selected_dir = self.file_explorer_listbox.get(selected_dir[0])
+            # If it is a file
+            if selected_dir[1] == '-':
+                return -1
+            selected_dir_path = selected_dir[3:]
+            self.current_directory = self.current_directory + '/' + selected_dir_path
+        else:
+            self.current_directory = new_dir
 
         self.ftp.change_current_directory(self.current_directory)
         self.update_list()

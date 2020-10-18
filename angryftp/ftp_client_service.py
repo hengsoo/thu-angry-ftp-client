@@ -40,14 +40,13 @@ class AngryFtpClientService:
         return self.get_response()
 
     def get_response(self):
-        response = self.socket.recv(BUFFER_SIZE).decode()
-        print(response)
-
-        while response[3] != ' ':
+        while True:
             response = self.socket.recv(BUFFER_SIZE).decode()
             print(response)
             if len(response) <= 0:
                 raise Exception("No end statement.")
+            if response[3] == ' ':
+                break
 
         self.set_status(response)
         return self.get_code(response), response
@@ -73,8 +72,8 @@ class AngryFtpClientService:
         if length > 55:
             message = message[:52] + "..."
         # Remove \r\n
-        if message[length-2:length] == "\r\n":
-            message = message[:length-2] + '\0'
+        if message[length - 2:length] == "\r\n":
+            message = message[:length - 2] + '\0'
         self.status.set(message)
 
     def connect(self, server_ip: str, server_port: int, username="anonymous", password="***"):
@@ -148,7 +147,6 @@ class AngryFtpClientService:
             # self.data is a list of single string containing the dir list
             self.data = self.data[0].split("\r\n")
             for directory in self.data:
-                print(directory)
                 if len(directory) < 1:
                     continue
                 list_detail = " "
