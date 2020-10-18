@@ -17,8 +17,8 @@ class AngryFtpClientService:
         self.data_socket = None
         self.data_connection_mode = "PASV"
         self.data = []
-        self.data_download_path = "./"
-        self.data_upload_path = ""
+
+        self.current_working_directory = ""
 
         self.status = status
 
@@ -184,10 +184,12 @@ class AngryFtpClientService:
 
     def print_current_directory(self):
         code, response = self.make_request("PWD")
-        return response
+        self.current_working_directory = response[5:-3]
+        return self.current_working_directory
 
     def change_current_directory(self, new_dir):
         self.make_request(f"CWD {new_dir}")
+        self.current_working_directory = new_dir
         return 0
 
     def update_list(self, listbox: Listbox):
@@ -253,5 +255,5 @@ class AngryFtpClientService:
 
     def upload_file(self, file_path):
         start_index = file_path.rfind('/')
-        file_name = file_path[start_index:]
+        file_name = self.current_working_directory + '/' + file_path[start_index:]
         return self.transfer_file(file_name, "STOR", file_path)

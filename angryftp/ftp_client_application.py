@@ -133,7 +133,7 @@ class AngryFtpClientApplication:
 
     def update_directory_label(self):
         # remove code and ""
-        directory = (self.ftp.print_current_directory())[5:-3]
+        directory = self.ftp.print_current_directory()
         self.current_directory_label.set(directory)
 
     def go_to_parent_dir(self):
@@ -223,7 +223,10 @@ class AngryFtpClientApplication:
             self.upload_file_path.set(file_path)
 
     def upload(self):
-        if self.ftp.upload_file(self.upload_file_path.get()) == -1:
+        path = self.upload_file_path.get()
+        if len(path) <= 0:
+            return -1
+        if self.ftp.upload_file(path) == -1:
             return -1
         self.update_list()
 
