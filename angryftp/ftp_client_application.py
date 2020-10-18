@@ -10,11 +10,9 @@ class AngryFtpClientApplication:
 
         self.main_frame = Frame(self.master).pack(padx=10)
 
-        self.addresses = {
+        self.address = {
             "ftp_ip": StringVar(value="192.168.0.183"),
-            "ftp_port": StringVar(value=2121),
-            "host_ip": "127.0.0.1",
-            "host_port": 21
+            "ftp_port": StringVar(value=2121)
         }
         self.username = StringVar(value="anonymous")
         self.password = StringVar(value="banana")
@@ -51,9 +49,9 @@ class AngryFtpClientApplication:
         login_frame = LabelFrame(self.main_frame, text='Login', padx=5, pady=5)
         # this wil create a label widget
         ip_label = Label(login_frame, text="IP:", anchor=W, width=8)
-        ip_input = Entry(login_frame, textvariable=self.addresses["ftp_ip"])
+        ip_input = Entry(login_frame, textvariable=self.address["ftp_ip"])
         port_label = Label(login_frame, text="Port:", anchor=W, width=8)
-        port_input = Entry(login_frame, textvariable=self.addresses["ftp_port"])
+        port_input = Entry(login_frame, textvariable=self.address["ftp_port"])
         username_label = Label(login_frame, text="Username:")
         username_input = Entry(login_frame, textvariable=self.username)
         password_label = Label(login_frame, text="Password:")
@@ -86,7 +84,7 @@ class AngryFtpClientApplication:
         # Login
         if self.connection_state_label.cget("text") == "Disconnected":
             return_val = self.ftp.connect(
-                self.addresses["ftp_ip"].get(), int(self.addresses["ftp_port"].get()),
+                self.address["ftp_ip"].get(), int(self.address["ftp_port"].get()),
                 self.username.get(), self.password.get()
             )
             if return_val == 0:

@@ -1,5 +1,6 @@
 import socket
 import re
+import random
 from tkinter import StringVar, Listbox, END
 
 BUFFER_SIZE = 1024
@@ -12,8 +13,9 @@ class AngryFtpClientService:
         self.server_ip = "127.0.0.1"
         self.server_port = 21
 
+        self.data_listen_socket = None
         self.data_socket = None
-        self.data_mode = "PASV"
+        self.data_mode = "PORT"
         self.data = []
         self.data_download_path = "./"
         self.data_upload_path = ""
@@ -21,6 +23,8 @@ class AngryFtpClientService:
         self.status = status
 
     def __del__(self):
+        if self.data_listen_socket:
+            self.data_listen_socket.close()
         if self.data_socket:
             self.data_socket.close()
         if self.socket:
@@ -37,7 +41,11 @@ class AngryFtpClientService:
 
         self.socket.sendall(encoded_request)
 
-        if request in ["LIST", "RETR", "STOR"]:
+        if request[:4] in ["LIST", "RETR", "STOR"]:
+            # Listen for connection is mode is PORT
+            if self.data_mode == "PORT":
+                self.data_listen_socket.listen()
+                self.data_socket, addr = self.data_listen_socket.accept()
             # Get 150 Opening binary data mode response
             self.get_response()
             # Save data
@@ -64,6 +72,8 @@ class AngryFtpClientService:
             data = self.data_socket.recv(BUFFER_SIZE).decode()
         # Transfer complete or connection dropped
         # Close socket
+        if self.data_mode == "PORT":
+            self.data_listen_socket.close()
         self.data_socket.close()
         return 0
 
@@ -109,12 +119,35 @@ class AngryFtpClientService:
         self.socket.close()
         return 0
 
+    @staticmethod
+    def get_host_ip():
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        host_ip = s.getsockname()[0]
+        s.close()
+        return host_ip
+
     def setup_data_connection(self):
         try:
             if self.data_mode == "PORT":
-                pass
+                # Create socket
+                self.data_listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+                ip = self.get_host_ip()
+                port = random.randint(20000, 65535)
+
+                self.data_listen_socket.bind((ip, port))
+
+                request_ip = ip.replace('.', ',')
+                code, response = self.make_request(f"PORT {request_ip},{port // 256},{port % 256}")
+                if code != 200:
+                    raise Exception("PORT failed")
+
             # PASV mode
             else:
+                # Create socket
+                self.data_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
                 code, response = self.make_request("PASV")
                 if code != 227:
                     raise Exception("PASV failed")
@@ -123,7 +156,6 @@ class AngryFtpClientService:
                 if port_search:
                     data_port = int(port_search.group(1)) * 256 + int(port_search.group(2))
 
-                self.data_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.data_socket.connect((self.server_ip, data_port))
 
         except Exception as e:
