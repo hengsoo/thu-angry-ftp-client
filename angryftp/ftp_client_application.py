@@ -18,6 +18,7 @@ class AngryFtpClientApplication:
         self.password = StringVar(value="banana")
         # Init in login_ui
         self.connection_state_label = None
+        self.auth_button = None
 
         self.status = StringVar(value="Welcome to AngryFtpClient")
         # Init in explorer ui
@@ -50,8 +51,9 @@ class AngryFtpClientApplication:
         password_label = Label(login_frame, text="Password:")
         password_input = Entry(login_frame, textvariable=self.password, show="*")
 
-        auth_button = Button(self.main_frame, text="Connect", width=20,
-                             command=self.auth)
+        self.auth_button = Button(self.main_frame, text="Connect", font='Helvetica 9 bold',
+                                  width=20, fg="white", bg="green",
+                                  command=self.auth)
 
         self.connection_state_label = \
             Label(self.main_frame, text="Disconnected", bg="red", fg="white",
@@ -70,7 +72,7 @@ class AngryFtpClientApplication:
         password_label.grid(row=1, column=2)
         password_input.grid(row=1, column=3)
 
-        auth_button.pack(side=TOP, pady=2)
+        self.auth_button.pack(side=TOP, pady=2)
 
     def auth(self):
         if self.connection_state_label.cget("text") == "Disconnected":
@@ -78,12 +80,13 @@ class AngryFtpClientApplication:
                 self.addresses["ftp_ip"].get(), int(self.addresses["ftp_port"].get()),
                 self.username.get(), self.password.get()
             )
-
             if return_val == 0:
                 self.connection_state_label.config(text="Connected", bg="green")
+                self.auth_button.config(text="Disconnect", bg="red")
         else:
             self.ftp.disconnect()
             self.connection_state_label.config(text="Disconnected", bg="red")
+            self.auth_button.config(text="Connect", bg="green")
 
     def file_explorer_ui(self):
         file_explorer_frame = Frame(self.main_frame, padx=10)

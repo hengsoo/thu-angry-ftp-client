@@ -28,6 +28,8 @@ class AngryFtpClientService:
 
     @staticmethod
     def get_code(response):
+        if len(response) < 3:
+            return -1
         return int(response[:3])
 
     def set_status(self, message):
