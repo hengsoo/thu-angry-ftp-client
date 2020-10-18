@@ -1,9 +1,9 @@
 import tkinter as tk
-from angryftp.ftp_client_application import FtpClientApplication
+from angryftp.ftp_client_application import AngryFtpClientApplication
 
 # Creating tkinter window
 if __name__ == '__main__':
     window = tk.Tk()
     window.resizable(False, False)
-    ftp_client = FtpClientApplication(window)
+    ftp_client = AngryFtpClientApplication(window)
     window.mainloop()

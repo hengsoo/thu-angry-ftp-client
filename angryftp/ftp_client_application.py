@@ -1,25 +1,31 @@
 from tkinter import *
+from .ftp_client_service import AngryFtpClientService
 
 
-class FtpClientApplication:
+class AngryFtpClientApplication:
     def __init__(self, master):
+
         self.master = master
         self.main_frame = Frame(self.master).pack(padx=10)
 
         self.addresses = {
-            "ftp_ip": StringVar(value="127.0.0.1"),
-            "ftp_port": StringVar(value=21),
+            "ftp_ip": StringVar(value="192.168.0.183"),
+            "ftp_port": StringVar(value=2121),
             "host_ip": "127.0.0.1",
             "host_port": 21
         }
         self.username = StringVar(value="anonymous")
         self.password = StringVar(value="banana")
-        self.connection_state = StringVar(value="Disconnected")
+        # Init in login_ui
+        self.connection_state_label = None
 
         self.status = StringVar(value="Welcome to AngryFtpClient")
-        self.file_explorer = ""
+        # Init in explorer ui
+        self.file_explorer_listbox = None
         self.upload_file_path = StringVar()
         self.connection_mode = StringVar(value="PASV")
+
+        self.ftp = AngryFtpClientService(self.status)
         self.ui()
 
     def ui(self):
@@ -44,13 +50,14 @@ class FtpClientApplication:
         password_label = Label(login_frame, text="Password:")
         password_input = Entry(login_frame, textvariable=self.password, show="*")
 
-        auth_button = Button(self.main_frame, text="Connect", width=20)
+        auth_button = Button(self.main_frame, text="Connect", width=20,
+                             command=self.auth)
 
-        connection_state_label = \
-            Label(self.main_frame, textvariable=self.connection_state, bg="red", fg="white",
+        self.connection_state_label = \
+            Label(self.main_frame, text="Disconnected", bg="red", fg="white",
                   font='Helvetica 11 bold')
 
-        connection_state_label.pack(side=TOP, fill=BOTH)
+        self.connection_state_label.pack(side=TOP, fill=BOTH)
         login_frame.pack(side=TOP, padx=5, pady=2, expand=1, fill=X)
 
         ip_label.grid(row=0, column=0, pady=2)
@@ -65,19 +72,32 @@ class FtpClientApplication:
 
         auth_button.pack(side=TOP, pady=2)
 
+    def auth(self):
+        if self.connection_state_label.cget("text") == "Disconnected":
+            return_val = self.ftp.connect(
+                self.addresses["ftp_ip"].get(), int(self.addresses["ftp_port"].get()),
+                self.username.get(), self.password.get()
+            )
+
+            if return_val == 0:
+                self.connection_state_label.config(text="Connected", bg="green")
+        else:
+            self.ftp.disconnect()
+            self.connection_state_label.config(text="Disconnected", bg="red")
+
     def file_explorer_ui(self):
         file_explorer_frame = Frame(self.main_frame, padx=10)
-        self.file_explorer = Listbox(file_explorer_frame, height=10, width=60)
+        self.file_explorer_listbox = Listbox(file_explorer_frame, height=10, width=60)
         scrollbar = Scrollbar(file_explorer_frame)
 
-        self.file_explorer.config(yscrollcommand=scrollbar.set)
-        scrollbar.config(command=self.file_explorer.yview)
+        self.file_explorer_listbox.config(yscrollcommand=scrollbar.set)
+        scrollbar.config(command=self.file_explorer_listbox.yview)
 
         file_explorer_frame.pack(side=TOP)
-        self.file_explorer.pack(side=LEFT, fill=BOTH, pady=10)
+        self.file_explorer_listbox.pack(side=LEFT, fill=BOTH, pady=10)
         scrollbar.pack(side=RIGHT, fill=BOTH)
         for values in range(100):
-            self.file_explorer.insert(END, values)
+            self.file_explorer_listbox.insert(END, values)
 
     def status_and_download_ui(self):
         status_download_frame = Frame(self.main_frame, padx=5)
