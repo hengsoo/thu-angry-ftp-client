@@ -276,3 +276,9 @@ class AngryFtpClientService:
         if code != 250:
             return -1
         return 0
+
+    def delete_file(self, file_name):
+        code, response = self.make_request(f"DELE {file_name}")
+        if code != 250:
+            return -1
+        return 0

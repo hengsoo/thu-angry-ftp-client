@@ -42,6 +42,7 @@ class AngryFtpClientApplication:
         self.upload_ui()
         self.folder_ui()
         self.rename_ui()
+        self.others_ui()
         self.connection_mode_ui()
 
     def quit(self):
@@ -282,6 +283,25 @@ class AngryFtpClientApplication:
         folder_name = selected_dir[3:]
 
         self.ftp.delete_folder(folder_name)
+        self.update_list()
+
+    def others_ui(self):
+        others_frame = LabelFrame(self.main_frame, text="Others", padx=5)
+        delete_button = Button(others_frame, text="Delete File", width=15, command=self.delete_file)
+
+        others_frame.pack(side=TOP, padx=5, pady=2, expand=1, fill=X)
+        delete_button.pack(side=TOP, pady=5)
+
+    def delete_file(self):
+        selected_dir = self.get_selected_listbox_item()
+        if selected_dir == -1:
+            return -1
+        # If it is a folder, return -1
+        if selected_dir[1] == '>':
+            return -1
+        file_name = selected_dir[3:]
+
+        self.ftp.delete_file(file_name)
         self.update_list()
 
     def connection_mode_ui(self):
