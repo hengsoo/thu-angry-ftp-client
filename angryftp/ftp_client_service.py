@@ -123,7 +123,9 @@ class AngryFtpClientService:
             self.server_ip, self.server_port = server_ip, server_port
 
             self.make_request(f"USER {username}")
-            self.make_request(f"PASS {password}")
+            code, response = self.make_request(f"PASS {password}")
+            if code != 230:
+                raise Exception("Auth Failed")
             self.make_request(f"SYST")
             self.make_request(f"TYPE I")
 
