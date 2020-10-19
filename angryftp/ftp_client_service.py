@@ -62,8 +62,9 @@ class AngryFtpClientService:
         while True:
             response = self.socket.recv(BUFFER_SIZE).decode()
             print(response)
-            if len(response) <= 0:
-                raise Exception("No end statement.")
+            if len(response) == 0:
+                self.set_status("Server connection terminated.")
+                break
             if response[3] == ' ':
                 break
 
@@ -136,9 +137,11 @@ class AngryFtpClientService:
             return -1
 
     def disconnect(self):
-        self.make_request("QUIT")
-        self.socket.close()
-        return 0
+        try:
+            self.make_request("QUIT")
+            self.socket.close()
+        finally:
+            return 0
 
     @staticmethod
     def get_host_ip():

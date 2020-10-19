@@ -46,9 +46,11 @@ class AngryFtpClientApplication:
         self.connection_mode_ui()
 
     def quit(self):
-        if self.connection_state_label.cget("text") == "Connected":
-            self.ftp.disconnect()
-        self.master.destroy()
+        try:
+            if self.connection_state_label.cget("text") == "Connected":
+                self.ftp.disconnect()
+        finally:
+            self.master.destroy()
 
     def login_ui(self):
         # This will create a LabelFrame
