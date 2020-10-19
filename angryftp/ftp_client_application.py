@@ -32,7 +32,7 @@ class AngryFtpClientApplication:
         self.data_connection_mode = StringVar(value="PASV")
 
         self.ftp = AngryFtpClientService(self.status)
-        self.master.protocol("WM_DELETE_WINDOW", quit)
+        self.master.protocol("WM_DELETE_WINDOW", self.quit)
         self.ui()
 
     def ui(self):
@@ -46,7 +46,8 @@ class AngryFtpClientApplication:
         self.connection_mode_ui()
 
     def quit(self):
-        self.ftp.disconnect()
+        if self.connection_state_label.cget("text") == "Connected":
+            self.ftp.disconnect()
         self.master.destroy()
 
     def login_ui(self):

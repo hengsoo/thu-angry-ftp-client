@@ -5,5 +5,5 @@ from angryftp.ftp_client_application import AngryFtpClientApplication
 if __name__ == '__main__':
     window = tk.Tk()
     window.resizable(False, False)
-    ftp_client = AngryFtpClientApplication(window)
+    AngryFtpClientApplication(window)
     window.mainloop()
