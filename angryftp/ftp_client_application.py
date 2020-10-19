@@ -26,6 +26,7 @@ class AngryFtpClientApplication:
         self.current_directory = "/"
         self.current_directory_label = StringVar(value="/")
         self.file_explorer_listbox = None
+        self.rename_to = StringVar()
         self.upload_file_path = StringVar()
         self.data_connection_mode = StringVar(value="PASV")
 
@@ -145,10 +146,9 @@ class AngryFtpClientApplication:
         if new_dir is None:
             # 01234
             # _>_dir
-            selected_dir = (self.file_explorer_listbox.curselection())
-            if len(selected_dir) < 1:
+            selected_dir = self.get_selected_listbox_item()
+            if selected_dir == -1:
                 return -1
-            selected_dir = self.file_explorer_listbox.get(selected_dir[0])
             # If it is a file, return -1
             if selected_dir[1] == '-':
                 return -1
@@ -175,11 +175,18 @@ class AngryFtpClientApplication:
         status_label.pack()
         download_button.pack(side=RIGHT, pady=(8, 0), padx=5)
 
-    def download(self):
+    def get_selected_listbox_item(self):
         selected_dir = (self.file_explorer_listbox.curselection())
         if len(selected_dir) < 1:
             return -1
         selected_dir = self.file_explorer_listbox.get(selected_dir[0])
+        return selected_dir
+
+    def download(self):
+
+        selected_dir = self.get_selected_listbox_item()
+        if selected_dir == -1:
+            return -1
         # If it is a folder, return -1
         if selected_dir[1] == '>':
             return -1
@@ -197,12 +204,25 @@ class AngryFtpClientApplication:
 
     def rename_ui(self):
         rename_frame = LabelFrame(self.main_frame, text="Rename to", padx=5, pady=2)
-        rename_input = Entry(rename_frame, width=50)
-        rename_button = Button(rename_frame, text="Confirm")
+        rename_input = Entry(rename_frame, textvariable=self.rename_to, width=50)
+        rename_button = Button(rename_frame, text="Confirm", command=self.rename)
 
         rename_frame.pack(side=TOP, padx=5, pady=2, expand=1, fill=X)
         rename_input.pack(side=LEFT, padx=5)
         rename_button.pack(side=RIGHT)
+
+    def rename(self):
+        selected_dir = self.get_selected_listbox_item()
+        if selected_dir == -1 or len(self.rename_to.get()) == 0:
+            return -1
+        # If it is a folder, return -1
+        if selected_dir[1] == '>':
+            return -1
+        old_file_name = selected_dir[3:]
+        new_file_name = self.rename_to.get()
+
+        self.ftp.rename_file(old_file_name, new_file_name)
+        self.update_list()
 
     def upload_ui(self):
         upload_frame = LabelFrame(self.main_frame, text="Upload", padx=5, pady=2)

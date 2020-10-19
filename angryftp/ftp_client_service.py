@@ -36,7 +36,7 @@ class AngryFtpClientService:
         else:
             self.data_connection_mode = "PASV"
 
-    def make_request(self, request, file_path=""):
+    def make_request(self, request, stor_host_file_path=""):
         encoded_request = (request + "\r\n").encode()
 
         self.socket.sendall(encoded_request)
@@ -51,7 +51,7 @@ class AngryFtpClientService:
             self.get_response()
             if request == "STOR":
                 # Send data
-                self.upload_file_data(file_path)
+                self.upload_file_data(stor_host_file_path)
             else:
                 # Save data
                 self.save_data_response(self.data, request[:4])
@@ -223,11 +223,11 @@ class AngryFtpClientService:
             self.set_status(str(e))
             return -1
 
-    def transfer_file(self, file_name, mode, file_path=""):
+    def transfer_file(self, file_name, mode, stor_host_file_path=""):
         try:
             if self.setup_data_connection() == 1:
                 return -1
-            code, response = self.make_request(f"{mode} {file_name}", file_path)
+            code, response = self.make_request(f"{mode} {file_name}", stor_host_file_path)
             if code != 226:
                 raise Exception(f"{mode} failed")
 
@@ -253,7 +253,14 @@ class AngryFtpClientService:
     def download_file(self, file_name):
         return self.transfer_file(file_name, "RETR")
 
-    def upload_file(self, file_path):
-        start_index = file_path.rfind('/')
-        file_name = self.current_working_directory + '/' + file_path[start_index:]
-        return self.transfer_file(file_name, "STOR", file_path)
+    def upload_file(self, stor_host_file_path):
+        start_index = stor_host_file_path.rfind('/')
+        file_name = self.current_working_directory + '/' + stor_host_file_path[start_index:]
+        return self.transfer_file(file_name, "STOR", stor_host_file_path)
+
+    def rename_file(self, old_file_name, new_file_name):
+        self.make_request(f"RNFR {old_file_name}")
+        code, response = self.make_request(f"RNTO {new_file_name}")
+        if code != 250:
+            return -1
+        return 0
