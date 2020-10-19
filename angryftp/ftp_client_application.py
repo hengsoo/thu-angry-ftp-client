@@ -28,6 +28,7 @@ class AngryFtpClientApplication:
         self.file_explorer_listbox = None
         self.rename_to = StringVar()
         self.upload_file_path = StringVar()
+        self.new_folder_name = StringVar()
         self.data_connection_mode = StringVar(value="PASV")
 
         self.ftp = AngryFtpClientService(self.status)
@@ -38,8 +39,9 @@ class AngryFtpClientApplication:
         self.login_ui()
         self.file_explorer_ui()
         self.status_and_download_ui()
-        self.rename_ui()
         self.upload_ui()
+        self.folder_ui()
+        self.rename_ui()
         self.connection_mode_ui()
 
     def quit(self):
@@ -248,6 +250,38 @@ class AngryFtpClientApplication:
             return -1
         if self.ftp.upload_file(path) == -1:
             return -1
+        self.update_list()
+
+    def folder_ui(self):
+        folder_frame = LabelFrame(self.main_frame, text="Folder", padx=5, pady=2)
+        folder_label = Label(folder_frame, text="Name:")
+        folder_input = Entry(folder_frame, width=40, textvariable=self.new_folder_name)
+        create_folder_button = Button(folder_frame, text="Make", command=self.create_folder)
+        delete_folder_button = Button(folder_frame, text="Delete", command=self.delete_folder)
+
+        folder_frame.pack(side=TOP, padx=5, pady=2, expand=1, fill=X)
+        folder_label.pack(side=LEFT)
+        folder_input.pack(side=LEFT, padx=5)
+        create_folder_button.pack(side=LEFT, padx=5)
+        delete_folder_button.pack(side=LEFT)
+
+    def create_folder(self):
+        folder_name = self.new_folder_name.get()
+        if len(folder_name) == 0:
+            return -1
+        self.ftp.create_folder(folder_name)
+        self.update_list()
+
+    def delete_folder(self):
+        selected_dir = self.get_selected_listbox_item()
+        if selected_dir == -1:
+            return -1
+        # If it is a file, return -1
+        if selected_dir[1] == '-':
+            return -1
+        folder_name = selected_dir[3:]
+
+        self.ftp.delete_folder(folder_name)
         self.update_list()
 
     def connection_mode_ui(self):

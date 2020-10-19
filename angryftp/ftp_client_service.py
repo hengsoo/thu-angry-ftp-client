@@ -258,6 +258,18 @@ class AngryFtpClientService:
         file_name = self.current_working_directory + '/' + stor_host_file_path[start_index:]
         return self.transfer_file(file_name, "STOR", stor_host_file_path)
 
+    def create_folder(self, folder_name):
+        code, response = self.make_request(f"MKD {folder_name}")
+        if code != 250:
+            return -1
+        return 0
+
+    def delete_folder(self, folder_name):
+        code, response = self.make_request(f"RMD {folder_name}")
+        if code != 250:
+            return -1
+        return 0
+
     def rename_file(self, old_file_name, new_file_name):
         self.make_request(f"RNFR {old_file_name}")
         code, response = self.make_request(f"RNTO {new_file_name}")
