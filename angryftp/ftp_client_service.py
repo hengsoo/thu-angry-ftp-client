@@ -216,7 +216,7 @@ class AngryFtpClientService:
                 list_detail = " "
                 # If directory is folder >, else it is a file -
                 list_detail += ("> " if directory[0] == 'd' else "- ")
-                directory_name = (re.search(r"\s([\s\w\d.]+)$", directory)).group(1)
+                directory_name = (re.search(r"\s([\s\w\d.\-]+)$", directory)).group(1)
                 list_detail += directory_name
                 listbox.insert(END, list_detail)
             # Clear data
